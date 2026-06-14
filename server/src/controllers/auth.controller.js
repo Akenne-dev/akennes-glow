@@ -97,35 +97,25 @@ async function getMe(req, res) {
     res.json({ user: req.user });
 }
 
+// Add this to your forgotPassword function in auth.controller.js
 async function forgotPassword(req, res) {
     try {
         const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ error: 'Email is required' });
-        }
-
         const user = await User.findOne({ email });
+
         if (!user) {
-            // For security don't reveal whether email exists
-            return res.status(200).json({ message: 'If that email is registered, you will receive a reset link' });
+            // Change this from 200 (OK) to 404 (Not Found)
+            return res.status(404).json({ error: 'Email not found' });
         }
 
-        const resetToken = user.createPasswordResetToken();
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetPasswordToken = crypto.createHash('sha256').update(resetCode).digest('hex');
+        user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
         await user.save({ validateBeforeSave: false });
 
-        try {
-            await sendResetPasswordEmail({ to: user.email, resetToken });
-            return res.status(200).json({ message: 'Reset email sent' });
-        } catch (err) {
-            // cleanup on failure
-            user.resetPasswordToken = null;
-            user.resetPasswordExpire = null;
-            await user.save({ validateBeforeSave: false });
-            console.error('Error sending email', err);
-            return res.status(500).json({ error: 'Unable to send reset email' });
-        }
+        res.status(200).json({ message: 'Code sent' });
+        sendResetPasswordEmail({ to: user.email, resetCode }).catch(console.error);
     } catch (error) {
-        console.error(error);
         res.status(500).json({ error: 'Unable to process request' });
     }
 }
@@ -151,7 +141,7 @@ async function resetPassword(req, res) {
         });
 
         if (!user) {
-            return res.status(400).json({ error: 'Token is invalid or has expired' });
+            return res.status(400).json({ error: 'Token  has expired' });
         }
 
         user.password = password;
@@ -168,10 +158,33 @@ async function resetPassword(req, res) {
     }
 }
 
+async function verifyResetCode(req, res) {
+    try {
+        const { email, code } = req.body;
+        const hashedCode = crypto.createHash('sha256').update(code).digest('hex');
+
+        const user = await User.findOne({
+            email,
+            resetPasswordToken: hashedCode,
+            resetPasswordExpire: { $gt: Date.now() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid or expired code' });
+        }
+
+        // Code is valid, return success
+        res.status(200).json({ message: 'Code verified' });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
 module.exports = {
     register,
     login,
     getMe,
     forgotPassword,
     resetPassword,
+    verifyResetCode, // Add this here
 };

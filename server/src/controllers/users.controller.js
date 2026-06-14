@@ -9,6 +9,7 @@ async function getUsers(req, res) {
     }
 }
 
+
 async function createUser(req, res) {
     try {
         const { name, email, password, role, avatar } = req.body;

@@ -1,11 +1,14 @@
+
 const express = require('express');
 const router = express.Router();
-const { register, login, getMe } = require('../controllers/auth.controller');
+// Import the entire controller as an object
+const authController = require('../controllers/auth.controller');
 const protect = require('../middleware/auth.middleware');
 
-router.post('/register', register);
-router.post('/login', login);
-router.get('/me', protect, getMe);
+// Now you can use authController.functionName for everything
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.get('/me', protect, authController.getMe);
 router.post('/social-login', async (req, res) => {
     const { email, name, uid } = req.body;
     try {
@@ -28,7 +31,9 @@ router.post('/social-login', async (req, res) => {
 // forgot / reset password
 const { forgotPassword, resetPassword } = require('../controllers/auth.controller');
 
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password/:token', resetPassword);
+// forgot / reset password
+router.post('/verify-reset-code', authController.verifyResetCode);
+router.post('/forgot-password', authController.forgotPassword);
+router.patch('/reset-password/:token', authController.resetPassword);
 
 module.exports = router;

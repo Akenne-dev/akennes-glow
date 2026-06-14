@@ -11,6 +11,9 @@ import {
   StatusBar,
   TouchableOpacity,
   Animated,
+  ActivityIndicator,
+  Modal,
+  Image,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import axios from "axios";
@@ -21,10 +24,13 @@ export default function Register() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false); // Modal state
+  const [showExistsModal, setShowExistsModal] = useState(false); // Exists Modal
 
   // Notification State
   const [notification, setNotification] = useState({ message: "", type: "" });
   const fadeAnim = useState(new Animated.Value(0))[0];
+  const [loading, setLoading] = useState(false);
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
@@ -51,22 +57,25 @@ export default function Register() {
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
-  async function onSubmit(data) {
-    if (data.password !== data.confirmPassword) {
-      showNotification("Passwords do not match", "error");
-      return;
+async function onSubmit(data) {
+  setLoading(true);
+  try {
+    await axios.post("http://192.168.0.124:4000/api/auth/register", data);
+
+    setShowModal(true);
+    setTimeout(() => {
+      setShowModal(false);
+      router.push("/auth/login");
+    }, 4000);
+    setLoading(false);
+  } catch (error) {
+    if (error?.response?.status === 409) {
+      setShowExistsModal(true); // Trigger the "Already Exists" modal
     }
-    try {
-      await axios.post("http://192.168.0.124:4000/api/auth/register", data);
-      showNotification("Account created successfully!", "success");
-      setTimeout(() => router.push("/auth/login"), 4000);
-    } catch (error) {
-      showNotification(
-        error?.response?.data?.error || "Unable to connect",
-        "error",
-      );
-    }
+    setLoading(false);
   }
+  
+}
 
   return (
     <KeyboardAvoidingView
@@ -74,6 +83,36 @@ export default function Register() {
       style={styles.container}
     >
       <StatusBar barStyle="dark-content" />
+
+      {/* Success Modal */}
+      <Modal transparent={true} visible={showModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            {/* Make sure you have your star image in assets/image/star.png */}
+            <Image
+              source={require("../../../assets/images/star.png")}
+              style={styles.starIcon}
+            />
+            <Text style={styles.modalText}>Account created successfully!</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Already Exists Modal */}
+      <Modal transparent={true} visible={showExistsModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Ionicons name="alert-circle" size={80} color="#F83758" />
+            <Text style={styles.modalText}>User already exists!</Text>
+            <Pressable
+              style={styles.button}
+              onPress={() => setShowExistsModal(false)}
+            >
+              <Text style={styles.buttonText}>Try Again</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       {/* Toast Notification Dropdown */}
       <Animated.View
@@ -111,6 +150,7 @@ export default function Register() {
                   placeholder="Username"
                   value={value}
                   onChangeText={onChange}
+                  placeholderTextColor="gray"
                 />
               </View>
               {errors.name && (
@@ -144,6 +184,7 @@ export default function Register() {
                   autoCapitalize="none"
                   value={value}
                   onChangeText={onChange}
+                  placeholderTextColor="gray"
                 />
               </View>
               {errors.email && (
@@ -176,6 +217,7 @@ export default function Register() {
                   secureTextEntry={!showPassword}
                   value={value}
                   onChangeText={onChange}
+                  placeholderTextColor="gray"
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -193,46 +235,6 @@ export default function Register() {
             </View>
           )}
         />
-
-        {/* Confirm Password */}
-        {/* <Controller
-          control={control}
-          name="confirmPassword"
-          rules={{ required: "Please confirm your password" }}
-          render={({ field: { onChange, value } }) => (
-            <View style={styles.inputWrapper}>
-              <View style={styles.inputRow}>
-                <Ionicons
-                  name="lock-closed-sharp"
-                  size={20}
-                  color="gray"
-                  style={{ marginRight: 10 }}
-                />
-                <TextInput
-                  style={styles.inputFlex}
-                  placeholder="Confirm Password"
-                  secureTextEntry={!showConfirmPassword}
-                  value={value}
-                  onChangeText={onChange}
-                />
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                >
-                  <Ionicons
-                    name={showConfirmPassword ? "eye-off-sharp" : "eye-sharp"}
-                    size={20}
-                    color="gray"
-                  />
-                </TouchableOpacity>
-              </View>
-              {errors.confirmPassword && (
-                <Text style={styles.errorText}>
-                  {errors.confirmPassword.message}
-                </Text>
-              )}
-            </View>
-          )}
-        /> */}
 
         {/* Confirm Password */}
         <Controller
@@ -259,6 +261,7 @@ export default function Register() {
                   secureTextEntry={!showConfirmPassword}
                   value={value}
                   onChangeText={onChange}
+                  placeholderTextColor="gray"
                 />
                 <TouchableOpacity
                   onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -280,11 +283,28 @@ export default function Register() {
         />
 
         <Text style={styles.disclaimer}>
-          By clicking the <Text style={{ color: "red" }}>Register</Text> button,
-          you agree to the public offer
+          By clicking the <Text style={{ color: "#F83758" }}>Register</Text>{" "}
+          button, you agree to the public offer
         </Text>
 
-        <Pressable style={styles.button} onPress={handleSubmit(onSubmit)}>
+        {/* this is the real clickable button do not delete it, it is the one that triggers the registration process */}
+        {/* <Pressable
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Create Account</Text>
+          )}
+        </Pressable> */}
+
+        <Pressable
+          style={[styles.button]}
+          // Wrap it in an arrow function so it only runs on press
+          onPress={() => router.push("/auth/login")}
+        >
           <Text style={styles.buttonText}>Create Account</Text>
         </Pressable>
 
@@ -319,12 +339,15 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     padding: 15,
-    // borderRadius: 10,
     zIndex: 1000,
     fontSize: 26,
   },
-  fontSize: 26,
-  toastText: { color: "#DB4437", textAlign: "center", fontWeight: "bold", fontSize: 24 },
+  toastText: {
+    color: "#F83758",
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 24,
+  },
   scrollContainer: {
     padding: 24,
     justifyContent: "center",
@@ -346,7 +369,7 @@ const styles = StyleSheet.create({
   errorText: { color: "red", fontSize: 12, marginTop: 4, marginLeft: 4 },
   disclaimer: { fontSize: 12, color: "#666", marginBottom: 20 },
   button: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: "#F83758",
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
@@ -360,5 +383,31 @@ const styles = StyleSheet.create({
     marginHorizontal: 80,
   },
   footerText: { textAlign: "center", marginTop: 20 },
-  linkText: { color: "#FF3B30", fontWeight: "700" },
+  linkText: { color: "#F83758", fontWeight: "700" },
+
+  // New Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.71)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    padding: 40,
+    borderRadius: 20,
+    alignItems: "center",
+  },
+  starIcon: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
 });

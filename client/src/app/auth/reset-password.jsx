@@ -1,121 +1,288 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
   TextInput,
   View,
   Pressable,
-  Alert,
+  ScrollView,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  Animated,
+  ActivityIndicator,
+  Modal,
+  Image,
 } from "react-native";
-import { Formik } from "formik";
-import * as Yup from "yup";
-import api from "../../lib/api";
-import { useRouter, useSearchParams } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-
-const ResetSchema = Yup.object().shape({
-  password: Yup.string().min(6, "Too short").required("Required"),
-  confirmPassword: Yup.string()
-    .oneOf([Yup.ref("password"), null], "Passwords must match")
-    .required("Required"),
-});
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useForm, Controller } from "react-hook-form";
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 
 export default function ResetPassword() {
+  const { token } = useLocalSearchParams(); // Gets token from URL
   const router = useRouter();
-  const params = useSearchParams();
-  const token = params?.token;
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showModal, setShowModal] = useState(false); // Success Modal state
 
-  async function handleReset(values, { setSubmitting }) {
+  const [notification, setNotification] = useState({ message: "", type: "" });
+  const fadeAnim = useState(new Animated.Value(0))[0];
+  const { code } = useLocalSearchParams();
+  const [loading, setLoading] = useState(false);
+
+  const { control, handleSubmit } = useForm({
+    defaultValues: { password: "", confirmPassword: "" },
+  });
+
+  const showNotification = (message, type) => {
+    setNotification({ message, type });
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.delay(2000),
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  async function onSubmit(data) {
+    if (data.password !== data.confirmPassword) {
+      showNotification("Passwords do not match", "error");
+      return;
+    }
+
+    setLoading(true);
     try {
-      const res = await api.post(`/auth/reset-password/${token}`, {
-        password: values.password,
-      });
-      const jwt = res.data.token;
-      if (jwt) await SecureStore.setItemAsync("authToken", jwt);
-      Alert.alert("Success", "Your password has been reset");
-      router.push("/auth/login");
-    } catch (err) {
-      Alert.alert(
-        "Error",
-        err?.response?.data?.error || "Unable to reset password",
+      await axios.patch(
+        `http://192.168.0.124:4000/api/auth/reset-password/${code}`,
+        {
+          password: data.password,
+        },
       );
-    } finally {
-      setSubmitting(false);
+
+      // Trigger success modal
+      setShowModal(true);
+      setTimeout(() => {
+        setShowModal(false);
+        router.replace("/auth/login");
+      }, 7000);
+      setLoading(false);
+    } catch (error) {
+      showNotification(error?.response?.data?.error || "Reset failed", "error");
+      setLoading(false);
     }
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Reset Password</Text>
-      <Formik
-        initialValues={{ password: "", confirmPassword: "" }}
-        validationSchema={ResetSchema}
-        onSubmit={handleReset}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <StatusBar barStyle="dark-content" />
+
+      {/* Success Modal */}
+      <Modal transparent={true} visible={showModal} animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Image
+              source={require("../../../assets/images/star.png")}
+              style={styles.starIcon}
+            />
+            <Text style={styles.modalText}>Password reset successful!</Text>
+          </View>
+        </View>
+      </Modal>
+
+      <Animated.View
+        style={[
+          styles.toast,
+          {
+            opacity: fadeAnim,
+            backgroundColor: "#ffffff",
+          },
+        ]}
       >
-        {({
-          handleChange,
-          handleBlur,
-          handleSubmit,
-          values,
-          errors,
-          touched,
-          isSubmitting,
-        }) => (
-          <>
-            <TextInput
-              style={styles.input}
-              placeholder="New password"
-              secureTextEntry
-              onChangeText={handleChange("password")}
-              onBlur={handleBlur("password")}
-              value={values.password}
-            />
-            {touched.password && errors.password && (
-              <Text style={styles.error}>{errors.password}</Text>
-            )}
+        <Text style={styles.toastText}>{notification.message}</Text>
+      </Animated.View>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm password"
-              secureTextEntry
-              onChangeText={handleChange("confirmPassword")}
-              onBlur={handleBlur("confirmPassword")}
-              value={values.confirmPassword}
-            />
-            {touched.confirmPassword && errors.confirmPassword && (
-              <Text style={styles.error}>{errors.confirmPassword}</Text>
-            )}
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={30} color="black" />
+        </TouchableOpacity>
 
-            <Pressable
-              style={styles.button}
-              onPress={handleSubmit}
-              disabled={isSubmitting || !token}
-            >
-              <Text style={styles.buttonText}>Set New Password</Text>
-            </Pressable>
-          </>
-        )}
-      </Formik>
-    </View>
+        <Text style={styles.title}>Reset Password</Text>
+
+        {/* Password Field */}
+        <Controller
+          control={control}
+          name="password"
+          rules={{
+            required: "Password is required",
+            minLength: {
+              value: 6,
+              message: "Password must be above 6 characters",
+            },
+          }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View>
+              <View style={[styles.inputRow, error && { borderColor: "red" }]}>
+                <Ionicons
+                  name="lock-closed-sharp"
+                  size={20}
+                  color="gray"
+                  style={{ marginRight: 10 }}
+                />
+                <TextInput
+                  style={styles.inputFlex}
+                  placeholder="New Password"
+                  secureTextEntry={!showPassword}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholderTextColor="gray"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  <Ionicons
+                    name={showPassword ? "eye-off-sharp" : "eye-sharp"}
+                    size={20}
+                    color="gray"
+                  />
+                </TouchableOpacity>
+              </View>
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+            </View>
+          )}
+        />
+
+        {/* Confirm Password Field */}
+        <Controller
+          control={control}
+          name="confirmPassword"
+          rules={{ required: "Password reset is required" }}
+          render={({ field: { onChange, value }, fieldState: { error } }) => (
+            <View style={{ marginTop: 15 }}>
+              <View style={[styles.inputRow, error && { borderColor: "red" }]}>
+                <Ionicons
+                  name="lock-closed-sharp"
+                  size={20}
+                  color="gray"
+                  style={{ marginRight: 10 }}
+                />
+                <TextInput
+                  style={styles.inputFlex}
+                  placeholder="Confirm Password"
+                  secureTextEntry={!showConfirmPassword}
+                  value={value}
+                  onChangeText={onChange}
+                  placeholderTextColor="gray"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? "eye-off-sharp" : "eye-sharp"}
+                    size={20}
+                    color="gray"
+                  />
+                </TouchableOpacity>
+              </View>
+              {error && <Text style={styles.errorText}>{error.message}</Text>}
+            </View>
+          )}
+        />
+
+        <Pressable
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Reset Password</Text>
+          )}
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, justifyContent: "center" },
-  title: { fontSize: 24, fontWeight: "700", marginBottom: 16 },
-  input: {
+  container: { flex: 1, backgroundColor: "#fff" },
+  toast: {
+    position: "absolute",
+    top: 50,
+    left: 20,
+    right: 20,
+    padding: 15,
+    borderRadius: 10,
+    zIndex: 1000,
+  },
+  toastText: {
+    color: "#F83758",
+    textAlign: "center",
+    fontWeight: "bold",
+    fontSize: 20,
+  },
+  scrollContainer: { padding: 24, marginTop: 50 },
+  title: { fontSize: 32, fontWeight: "800", marginBottom: 30, marginTop: 80 },
+  errorText: {
+    color: "red",
+    fontSize: 12,
+    marginTop: 5,
+    marginLeft: 5,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: "#F9F9F9",
   },
+  inputFlex: { flex: 1 },
   button: {
-    backgroundColor: "#6f42c1",
-    padding: 12,
-    borderRadius: 8,
+    backgroundColor: "#F83758",
+    padding: 18,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 30,
+  },
+  buttonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.71)",
+    justifyContent: "center",
     alignItems: "center",
   },
-  buttonText: { color: "#fff", fontWeight: "700" },
-  error: { color: "#d9534f", marginBottom: 8 },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    padding: 40,
+    borderRadius: 20,
+    alignItems: "center",
+  },
+  starIcon: {
+    width: 100,
+    height: 100,
+    marginBottom: 20,
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+  },
 });

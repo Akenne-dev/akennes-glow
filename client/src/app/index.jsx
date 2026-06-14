@@ -50,7 +50,8 @@ export default function Onboarding() {
       const timer = setTimeout(() => {
         flatListRef.current?.scrollToIndex({ index: 1, animated: true });
         setCurrentIndex(1);
-      }, 9000);
+      // }, 9000);
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [currentIndex]);
@@ -72,14 +73,6 @@ export default function Onboarding() {
       setCurrentIndex(currentIndex - 1);
     }
   };
-
-
-    // DO NOT show the "Skip" button on the first slide, and instead of skipping to the last slide, it should navigate to the registration screen immediately. This encourages users to engage with the onboarding content while still providing a clear path to registration if they choose to skip.
-  // const handleSkip = () => {
-  //   const finalIndex = slides.length - 1;
-  //   flatListRef.current?.scrollToIndex({ index: finalIndex, animated: true });
-  //   setCurrentIndex(finalIndex);
-  // };
 
     const handleSkip = () => {
 router.push("/auth/register");
@@ -216,8 +209,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 30,
+    // .get("http://192.168.0.124:4000/api/home")
   },
-  nextText: { color: "red", fontSize: 16, fontWeight: "bold" },
+  nextText: { color: "#F83758", fontSize: 16, fontWeight: "bold" },
   prevText: { color: "black", fontSize: 16 },
   disabled: { color: "grey", fontSize: 16 },
   progressBarContainer: { flexDirection: "row" },

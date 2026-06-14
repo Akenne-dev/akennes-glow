@@ -11,6 +11,7 @@ import {
   ScrollView,
   StatusBar,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
 import axios from "axios";
@@ -20,6 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 export default function Login() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const {
     control,
@@ -29,21 +31,19 @@ export default function Login() {
     defaultValues: { email: "", password: "" },
   });
 
-  async function onSubmit(data) {
-    try {
-      const response = await axios.post(
-        "http://192.168.0.124:4000/api/auth/login",
-        data,
-      );
-      Alert.alert("Success", "Logged in successfully!");
-      router.push("/home"); // Adjust to your actual home route
-    } catch (error) {
-      Alert.alert(
-        "Login Failed",
-        error?.response?.data?.error || "Invalid credentials",
-      );
-    }
+async function onSubmit(data) {
+  setLoading(true); // Disable button immediately
+  try {
+    await axios.post("http://192.168.0.124:4000/api/auth/login", data);
+    router.push("/home");
+  } catch (error) {
+    Alert.alert(
+      "Login Failed",
+      error?.response?.data?.error || "Invalid credentials",
+    );
+    setLoading(false); // Re-enable on failure
   }
+}
 
   return (
     <KeyboardAvoidingView
@@ -53,6 +53,9 @@ export default function Login() {
       <StatusBar barStyle="dark-content" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <Text style={styles.title}>Welcome Back!</Text>
+
+        {/* "Check your email", "If that email is registered you will receive a
+        reset link", */}
 
         {/* Email/Username */}
         <Controller
@@ -74,6 +77,7 @@ export default function Login() {
                   value={value}
                   onChangeText={onChange}
                   autoCapitalize="none"
+                  placeholderTextColor="gray"
                 />
               </View>
               {errors.email && (
@@ -82,7 +86,6 @@ export default function Login() {
             </View>
           )}
         />
-
         {/* Password */}
         <Controller
           control={control}
@@ -103,6 +106,7 @@ export default function Login() {
                   secureTextEntry={!showPassword}
                   value={value}
                   onChangeText={onChange}
+                  placeholderTextColor="gray"
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
@@ -120,25 +124,39 @@ export default function Login() {
             </View>
           )}
         />
-
         <TouchableOpacity onPress={() => router.push("/auth/forgot-password")}>
           <Text style={styles.forgotPassword}>Forgot Password?</Text>
         </TouchableOpacity>
 
-        <Pressable style={styles.button} onPress={handleSubmit(onSubmit)}>
+        {/* this is the real clickable button do not delete it, it is the one that triggers the registration process */}
+        {/* <Pressable
+          style={[styles.button, loading && { opacity: 0.6 }]}
+          onPress={handleSubmit(onSubmit)}
+          disabled={loading} // Prevents extra clicks
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Login</Text>
+          )}
+        </Pressable> */}
+
+        <Pressable
+          style={[styles.button]}
+          // Wrap it in an arrow function so it only runs on press
+          onPress={() => router.push("/get-started")}
+        >
           <Text style={styles.buttonText}>Login</Text>
         </Pressable>
 
         <Text style={styles.orText}>- OR Continue with -</Text>
-
         <View style={styles.socialContainer}>
           <TouchableOpacity
             onPress={() => Alert.alert("Google Auth", "Coming soon!")}
           >
-            <Ionicons name="logo-google" size={30} color="#DB4437" />
+            <Ionicons name="logo-google" size={30} color="#F83758" />
           </TouchableOpacity>
         </View>
-
         <Text style={styles.footerText}>
           Create An Account?{" "}
           <Link href="/auth/register" style={styles.linkText}>
@@ -167,13 +185,13 @@ const styles = StyleSheet.create({
   inputFlex: { flex: 1, paddingVertical: 16 },
   forgotPassword: {
     textAlign: "right",
-    color: "#FF3B30",
+    color: "#F83758",
     marginBottom: 20,
     fontWeight: "600",
   },
   errorText: { color: "red", fontSize: 12, marginTop: 4, marginLeft: 4 },
   button: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: "#F83758",
     padding: 18,
     borderRadius: 12,
     alignItems: "center",
@@ -182,5 +200,5 @@ const styles = StyleSheet.create({
   orText: { textAlign: "center", marginVertical: 30, color: "#666" },
   socialContainer: { alignItems: "center" },
   footerText: { textAlign: "center", marginTop: 20 },
-  linkText: { color: "#FF3B30", fontWeight: "700" },
+  linkText: { color: "#F83758", fontWeight: "700" },
 });
