@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Product'); // <--- ADD THIS IMPORT (Adjust path if needed)
+const Product = require('../models/product'); // <--- ADD THIS IMPORT (Adjust path if needed)
 
 router.get('/', async (req, res) => { // Changed to '/' because the prefix is already in app.js
     const { category } = req.query;

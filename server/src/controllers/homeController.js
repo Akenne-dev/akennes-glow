@@ -1,5 +1,5 @@
 const HomePageSection = require('../models/HomePageSection');
-const Product = require('../models/Product'); // Import Product model
+const Product = require('../models/product'); // Import Product model
 
 exports.getHomePageContent = async (req, res) => {
     try {
