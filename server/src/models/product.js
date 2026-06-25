@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
     isFeatured: { type: Boolean, default: false }, // Add this default
     rating: { type: Number, default: 5, min: 0, max: 5 },
-    discountPercent: { type: Number, default: 0, min: 0, max: 100 }
+    discountAmount: { type: Number, default: 0, min: 0 }
 });
 
 // Indexing for faster searching/filtering

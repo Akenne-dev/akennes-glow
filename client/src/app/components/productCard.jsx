@@ -14,11 +14,11 @@ export default function ProductCard({ product }) {
   const [toast, setToast] = useState({ visible: false, message: "", variant: "added" });
 
   const rating = product.rating || 0;
-  const discountPercent = product.discountPercent || 0;
+  const discountAmount = product.discountAmount || 0;
   const discountedPrice =
-    discountPercent > 0
-      ? Math.round(product.price * (1 - discountPercent / 100))
-      : null;
+    discountAmount > 0 ? Math.max(product.price - discountAmount, 0) : null;
+  const discountPercent =
+    discountAmount > 0 ? Math.round((discountAmount / product.price) * 100) : 0;
 
   const handleToggleWishlist = async () => {
     try {
@@ -67,8 +67,8 @@ export default function ProductCard({ product }) {
       <View style={styles.priceRow}>
         {discountedPrice !== null ? (
           <>
-            <Text style={styles.originalPrice}>₦{product.price}</Text>
             <Text style={styles.price}>₦{discountedPrice}</Text>
+            <Text style={styles.originalPrice}>₦{product.price}</Text>
             <View style={styles.discountBadge}>
               <Text style={styles.discountBadgeText}>-{discountPercent}%</Text>
             </View>

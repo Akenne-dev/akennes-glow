@@ -91,7 +91,7 @@ export default function AdminDashboard() {
     isFeatured: true,
     isDeal: false,
     rating: 5,
-    discountPercent: 0,
+    discountAmount: 0,
   });
 
   useEffect(() => {
@@ -277,13 +277,12 @@ export default function AdminDashboard() {
             </select>
             <input
               style={styles.input}
-              placeholder="Discount %"
+              placeholder="Discount Amount (₦)"
               type="number"
               min="0"
-              max="100"
-              value={formData.discountPercent}
+              value={formData.discountAmount}
               onChange={(e) =>
-                setFormData({ ...formData, discountPercent: Number(e.target.value) })
+                setFormData({ ...formData, discountAmount: Number(e.target.value) })
               }
             />
             <button
@@ -327,7 +326,7 @@ export default function AdminDashboard() {
                   </td>
                   <td style={styles.td}>${p.price}</td>
                   <td style={styles.td}>{"★".repeat(p.rating || 0)}</td>
-                  <td style={styles.td}>{p.discountPercent ? `${p.discountPercent}%` : "—"}</td>
+                  <td style={styles.td}>{p.discountAmount ? `₦${p.discountAmount} off` : "—"}</td>
                   <td style={styles.td}>
                     <span
                       style={{
