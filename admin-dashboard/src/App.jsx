@@ -77,6 +77,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+const API_BASE_URL = "https://akennes-glow.onrender.com/api/admin";
+
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [editProduct, setEditProduct] = useState(null);
@@ -88,6 +90,8 @@ export default function AdminDashboard() {
     imageUrl: "",
     isFeatured: true,
     isDeal: false,
+    rating: 5,
+    discountPercent: 0,
   });
 
   useEffect(() => {
@@ -106,7 +110,7 @@ export default function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const res = await axios.get("http://localhost:4000/api/admin/products");
+      const res = await axios.get(`${API_BASE_URL}/products`);
       setProducts(res.data);
     } catch (err) {
       console.error(err);
@@ -117,15 +121,12 @@ export default function AdminDashboard() {
     try {
       if (editProduct) {
         await axios.put(
-          `http://localhost:4000/api/admin/edit-product/${editProduct._id}`,
+          `${API_BASE_URL}/edit-product/${editProduct._id}`,
           formData,
         );
         showToast("Product Updated Successfully!", "success");
       } else {
-        await axios.post(
-          "http://localhost:4000/api/admin/add-product",
-          formData,
-        );
+        await axios.post(`${API_BASE_URL}/add-product`, formData);
         showToast("Product Added Successfully!", "success");
       }
       setEditProduct(null);
@@ -137,18 +138,18 @@ export default function AdminDashboard() {
         description: "",
         isFeatured: true,
         isDeal: false,
+        rating: 5,
+        discountPercent: 0,
       });
       fetchProducts();
     } catch (err) {
-      showToast("Error saving product", "error");
+      showToast(err.response?.data?.error || "Error saving product", "error");
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `http://localhost:4000/api/admin/delete-product/${id}`,
-      );
+      await axios.delete(`${API_BASE_URL}/delete-product/${id}`);
       showToast("Product Deleted Successfully!", "success");
       fetchProducts();
     } catch (err) {
@@ -261,6 +262,30 @@ export default function AdminDashboard() {
               />
               Is Deal
             </label>
+            <select
+              style={styles.input}
+              value={formData.rating}
+              onChange={(e) =>
+                setFormData({ ...formData, rating: Number(e.target.value) })
+              }
+            >
+              <option value={1}>1 Star</option>
+              <option value={2}>2 Stars</option>
+              <option value={3}>3 Stars</option>
+              <option value={4}>4 Stars</option>
+              <option value={5}>5 Stars</option>
+            </select>
+            <input
+              style={styles.input}
+              placeholder="Discount %"
+              type="number"
+              min="0"
+              max="100"
+              value={formData.discountPercent}
+              onChange={(e) =>
+                setFormData({ ...formData, discountPercent: Number(e.target.value) })
+              }
+            />
             <button
               style={styles.saveBtn}
               onClick={handleSave}
@@ -284,6 +309,8 @@ export default function AdminDashboard() {
                 <th style={styles.th}>Name</th>
                 <th style={styles.th}>Category</th>
                 <th style={styles.th}>Price</th>
+                <th style={styles.th}>Rating</th>
+                <th style={styles.th}>Discount</th>
                 <th style={styles.th}>Featured</th>
                 <th style={styles.th}>Actions</th>
               </tr>
@@ -299,6 +326,8 @@ export default function AdminDashboard() {
                     <span style={styles.badge}>{p.category}</span>
                   </td>
                   <td style={styles.td}>${p.price}</td>
+                  <td style={styles.td}>{"★".repeat(p.rating || 0)}</td>
+                  <td style={styles.td}>{p.discountPercent ? `${p.discountPercent}%` : "—"}</td>
                   <td style={styles.td}>
                     <span
                       style={{

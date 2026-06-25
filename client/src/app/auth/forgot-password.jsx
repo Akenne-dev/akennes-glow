@@ -95,7 +95,7 @@ async function onSubmit(data) {
       </Animated.View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back("/auth/login")}>
           <Ionicons name="arrow-back" size={30} color="black" />
         </TouchableOpacity>
 

@@ -44,9 +44,9 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   image: {
-    width: 84,
+    width: 130,
     aspectRatio: 1,
-    borderRadius: 12,
+    borderRadius: 8,
     backgroundColor: "#F3F1EE",
   },
   details: {
@@ -55,18 +55,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   name: {
-    fontSize: 15,
+    fontSize: 22,
     fontWeight: "700",
     color: "#222",
   },
   description: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#888",
     marginTop: 2,
     lineHeight: 16,
   },
   price: {
-    fontSize: 15,
+    fontSize: 19,
     fontWeight: "700",
     color: "#222",
     marginTop: 6,
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    backgroundColor: "#F4811F",
+    backgroundColor: "#F83758",
     borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,

@@ -12,6 +12,7 @@ import {
 import ProductCard from "../components/productCard";
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { api } from "../../lib/api";
 
@@ -44,6 +45,7 @@ export default function CategoryPage() {
   };
 
   return (
+    <LinearGradient colors={["#FFD9E3", "#FFF1F4", "#FDFBF9"]} style={styles.gradient}>
     <SafeAreaView style={styles.container}>
       {/* 1. Header */}
       <View style={styles.header}>
@@ -105,11 +107,13 @@ export default function CategoryPage() {
         />
       )}
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F9F9F9", paddingHorizontal: 10 },
+  gradient: { flex: 1 },
+  container: { flex: 1, paddingHorizontal: 10 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

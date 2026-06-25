@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useWishlist } from "../../../lib/wishlistStore";
@@ -30,56 +31,59 @@ export default function Wishlist() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.header}>My Wishlist</Text>
+    <LinearGradient colors={["#FFD9E3", "#FFF1F4", "#FDFBF9"]} style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <Text style={styles.header}>My Wishlist</Text>
 
-      {status === "loading" && products.length === 0 ? (
-        <ActivityIndicator size="large" color="#F83758" style={styles.loader} />
-      ) : (
-        <FlatList
-          data={products}
-          keyExtractor={(item) => item._id}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <WishlistCard
-              product={item}
-              onRemove={() => handleRemove(item)}
-              onShop={() =>
-                router.push({ pathname: "/product-details", params: { id: item._id } })
-              }
-            />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <Ionicons name="heart-outline" size={48} color="#D8CFC6" />
-              <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
-              <Text style={styles.emptySubtitle}>
-                Tap the heart on any product to save it here.
-              </Text>
-            </View>
-          }
+        {status === "loading" && products.length === 0 ? (
+          <ActivityIndicator size="large" color="#F83758" style={styles.loader} />
+        ) : (
+          <FlatList
+            data={products}
+            keyExtractor={(item) => item._id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <WishlistCard
+                product={item}
+                onRemove={() => handleRemove(item)}
+                onShop={() =>
+                  router.push({ pathname: "/product-details", params: { id: item._id } })
+                }
+              />
+            )}
+            ListEmptyComponent={
+              <View style={styles.emptyState}>
+                <Ionicons name="heart-outline" size={48} color="#D8CFC6" />
+                <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
+                <Text style={styles.emptySubtitle}>
+                  Tap the heart on any product to save it here.
+                </Text>
+              </View>
+            }
+          />
+        )}
+
+        <Toast
+          visible={toast.visible}
+          message={toast.message}
+          variant={toast.variant}
+          onHide={() => setToast((t) => ({ ...t, visible: false }))}
         />
-      )}
-
-      <Toast
-        visible={toast.visible}
-        message={toast.message}
-        variant={toast.variant}
-        onHide={() => setToast((t) => ({ ...t, visible: false }))}
-      />
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#FDFBF9" },
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
   header: {
     fontSize: 24,
     fontWeight: "800",
     color: "#222",
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingTop: 56,
+    paddingBottom: 32,
   },
   loader: { marginTop: 60 },
   listContent: { paddingHorizontal: 16, paddingBottom: 30 },

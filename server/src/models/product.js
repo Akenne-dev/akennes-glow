@@ -8,7 +8,9 @@ const productSchema = new mongoose.Schema({
     imageUrl: { type: String, required: true }, // Cloudinary/S3 URL
     isDeal: { type: Boolean, default: false },
     createdAt: { type: Date, default: Date.now },
-    isFeatured: { type: Boolean, default: false } // Add this default
+    isFeatured: { type: Boolean, default: false }, // Add this default
+    rating: { type: Number, default: 5, min: 0, max: 5 },
+    discountPercent: { type: Number, default: 0, min: 0, max: 100 }
 });
 
 // Indexing for faster searching/filtering

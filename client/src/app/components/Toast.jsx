@@ -36,7 +36,13 @@ export default function Toast({ visible, message, variant = "added", onHide }) {
       <View style={styles.overlay} pointerEvents="box-none">
         <Animated.View style={[styles.toast, { transform: [{ translateY }] }]}>
           <Ionicons
-            name={variant === "removed" ? "heart-dislike" : "heart"}
+            name={
+              variant === "removed"
+                ? "heart-dislike"
+                : variant === "cart"
+                ? "cart"
+                : "heart"
+            }
             size={18}
             color="#F83758"
           />
@@ -59,7 +65,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
-    backgroundColor: "#2D2D2D",
+    backgroundColor: "#F83758",
     borderRadius: 14,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -73,5 +79,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 14,
+    marginLeft:90,
   },
 });
