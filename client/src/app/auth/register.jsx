@@ -444,9 +444,9 @@ import {
   ImageBackground,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
-import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
+import { api } from "../../lib/api";
 
 export default function Register() {
   const router = useRouter();
@@ -488,7 +488,7 @@ export default function Register() {
   async function onSubmit(data) {
     setLoading(true);
     try {
-      await axios.post("http://192.168.0.124:4000/api/auth/register", data);
+      await api.post("/auth/register", data);
 
       setShowModal(true);
       setTimeout(() => {

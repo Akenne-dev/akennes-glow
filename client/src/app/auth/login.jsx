@@ -14,9 +14,9 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Link, useRouter } from "expo-router";
-import axios from "axios";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
+import { api } from "../../lib/api";
 
 export default function Login() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function Login() {
 async function onSubmit(data) {
   setLoading(true); // Disable button immediately
   try {
-    await axios.post("http://192.168.0.124:4000/api/auth/login", data);
+    await api.post("/auth/login", data);
     router.push("/home");
   } catch (error) {
     Alert.alert(

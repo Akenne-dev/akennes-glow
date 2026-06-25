@@ -13,8 +13,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
-import { API_BASE_URL } from "../../lib/api";
+import { api } from "../../lib/api";
 
 export default function EnterCode() {
   const router = useRouter();
@@ -49,13 +48,10 @@ export default function EnterCode() {
     try {
       setLoading(true);
       // Verify code with backend
-      const response = await axios.post(
-        `${API_BASE_URL}/auth/verify-reset-code`,
-        {
-          email,
-          code,
-        },
-      );
+      const response = await api.post("/auth/verify-reset-code", {
+        email,
+        code,
+      });
       // Navigate to ResetPassword with the code as a parameter
       router.push({ pathname: "/auth/reset-password", params: { code } });
     } catch (error) {

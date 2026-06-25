@@ -9,12 +9,11 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import axios from "axios";
 import ProductCard from "../components/productCard";
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { API_BASE_URL } from "../../lib/api";
+import { api } from "../../lib/api";
 
 export default function CategoryPage() {
   const { id } = useLocalSearchParams();
@@ -27,8 +26,8 @@ export default function CategoryPage() {
 
   useEffect(() => {
     setLoading(true);
-    axios
-      .get(`${API_BASE_URL}/products?category=${id}`)
+    api
+      .get(`/products?category=${id}`)
       .then((res) => {
         setProducts(res.data);
         setFilteredProducts(res.data);

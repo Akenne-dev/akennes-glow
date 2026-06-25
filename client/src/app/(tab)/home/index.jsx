@@ -10,12 +10,11 @@ import {
   RefreshControl,
   TouchableOpacity,
 } from "react-native";
-import axios from "axios";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import ProductCard from "../../components/productCard";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { API_BASE_URL } from "../../../lib/api";
+import { api } from "../../../lib/api";
 
 const categories = [
   {
@@ -55,7 +54,7 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/home`);
+      const res = await api.get("/home");
       setAllProducts(res.data);
       setFilteredProducts(res.data);
     } catch (err) {

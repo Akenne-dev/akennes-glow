@@ -18,8 +18,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
-import { API_BASE_URL } from "../../lib/api";
+import { api } from "../../lib/api";
 
 export default function ResetPassword() {
   const { token } = useLocalSearchParams(); // Gets token from URL
@@ -62,12 +61,9 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      await axios.patch(
-        `${API_BASE_URL}/auth/reset-password/${code}`,
-        {
-          password: data.password,
-        },
-      );
+      await api.patch(`/auth/reset-password/${code}`, {
+        password: data.password,
+      });
 
       // Trigger success modal
       setShowModal(true);

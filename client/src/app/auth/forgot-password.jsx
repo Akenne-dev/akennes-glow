@@ -15,9 +15,8 @@ import {
 } from "react-native";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import { useRouter } from "expo-router";
-import { API_BASE_URL } from "../../lib/api";
+import { api } from "../../lib/api";
 
 export default function ForgotPassword() {
   const {
@@ -55,10 +54,7 @@ async function onSubmit(data) {
   setValidationError(""); // Reset error
   try {
     setLoading(true);
-    await axios.post(
-      `${API_BASE_URL}/auth/forgot-password`,
-      data,
-    );
+    await api.post("/auth/forgot-password", data);
 
     // Success: Navigate
     router.push({
