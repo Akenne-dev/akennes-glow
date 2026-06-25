@@ -1,14 +1,32 @@
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const API_BASE_URL = "http://localhost:4000/api";
+export const API_BASE_URL = "https://akennes-glow.onrender.com/api";
+const TOKEN_KEY = "authToken";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
 });
 
-export function setAuthToken(token) {
-  api.defaults.headers.common.Authorization = token
-    ? `Bearer ${token}`
-    : undefined;
+export async function setAuthToken(token) {
+  if (token) {
+    await AsyncStorage.setItem(TOKEN_KEY, token);
+    api.defaults.headers.common.Authorization = `Bearer ${token}`;
+  } else {
+    await AsyncStorage.removeItem(TOKEN_KEY);
+    delete api.defaults.headers.common.Authorization;
+  }
 }
+
+// Fallback for requests made before setAuthToken has run in this session
+// (e.g. right after an app restart), so the token is still read from storage.
+api.interceptors.request.use(async (config) => {
+  if (!config.headers.Authorization) {
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});

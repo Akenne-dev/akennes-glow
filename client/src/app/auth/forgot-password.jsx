@@ -17,6 +17,7 @@ import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import { API_BASE_URL } from "../../lib/api";
 
 export default function ForgotPassword() {
   const {
@@ -55,7 +56,7 @@ async function onSubmit(data) {
   try {
     setLoading(true);
     await axios.post(
-      "http://192.168.0.124:4000/api/auth/forgot-password",
+      `${API_BASE_URL}/auth/forgot-password`,
       data,
     );
 

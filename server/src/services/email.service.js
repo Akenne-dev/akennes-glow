@@ -10,8 +10,8 @@ if (!EMAIL_USER || !EMAIL_PASS) {
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'kehindekadiri97@gmail.com', // Use your Gmail address here
-        pass: 'lhuzqxogtzermjwq', // Use your 16-character App Password here
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
     },
 });
 // Change the function to accept resetCode instead of resetToken

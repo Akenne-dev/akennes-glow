@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
     name: { type: String, required: true },
     price: { type: Number, required: true },
+    description: { type: String, required: true }, // <--- Add this
     category: { type: String, required: true }, // 'men', 'women', 'kids'
     imageUrl: { type: String, required: true }, // Cloudinary/S3 URL
     isDeal: { type: Boolean, default: false },
@@ -14,3 +15,4 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ category: 1, isDeal: 1 });
 
 module.exports = mongoose.model('Product', productSchema);
+

@@ -134,6 +134,7 @@ export default function AdminDashboard() {
         price: "",
         category: "mens",
         imageUrl: "",
+        description: "",
         isFeatured: true,
         isDeal: false,
       });
@@ -200,6 +201,14 @@ export default function AdminDashboard() {
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
+              }
+            />
+            <input
+              style={styles.input}
+              placeholder="Product Description"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
               }
             />
             <input

@@ -1,33 +1,3 @@
-// import { useLocalSearchParams } from "expo-router";
-// import { View, FlatList, Text } from "react-native";
-// import axios from "axios";
-// import ProductCard from "../components/productCard";
-// import { useEffect, useState } from "react";
-// export default function CategoryPage() {
-//   const { id } = useLocalSearchParams(); // This gets 'beauty', 'kids', etc.
-//   const [products, setProducts] = useState([]);
-
-//   useEffect(() => {
-//     // Backend will filter by this ID
-//     axios
-//       .get(`http://192.168.0.124:4000/api/products?category=${id}`)
-//       .then((res) => setProducts(res.data));
-//   }, [id]);
-
-//   return (
-//     <View style={{ flex: 1, paddingTop: 50 }}>
-//       <Text style={{ fontSize: 24, fontWeight: "bold", marginLeft: 20 }}>
-//         {id}
-//       </Text>
-//       <FlatList
-//         data={products}
-//         renderItem={({ item }) => <ProductCard product={item} />}
-//         numColumns={2}
-//       />
-//     </View>
-//   );
-// }
-
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   View,
@@ -37,37 +7,54 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import axios from "axios";
 import ProductCard from "../components/productCard";
 import { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { API_BASE_URL } from "../../lib/api";
 
 export default function CategoryPage() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     axios
-      .get(`http://192.168.0.124:4000/api/products?category=${id}`)
-      .then((res) => setProducts(res.data));
+      .get(`${API_BASE_URL}/products?category=${id}`)
+      .then((res) => {
+        setProducts(res.data);
+        setFilteredProducts(res.data);
+      })
+      .finally(() => setLoading(false));
   }, [id]);
+
+  const handleSearch = (text) => {
+    setSearch(text);
+    const filtered = products.filter((item) =>
+      item.name.toLowerCase().includes(text.toLowerCase()),
+    );
+    setFilteredProducts(filtered);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 1. Header: Back Button, Logo, Profile */}
+      {/* 1. Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color="#000" />
         </TouchableOpacity>
 
-        <Image
-          source={require("../../../assets/images/brand-logo.png")}
-          style={styles.brandLogo}
-          resizeMode="cover"
-        />
+        <Text style={styles.categoryTitle}>
+          {id ? id.charAt(0).toUpperCase() + id.slice(1) : "Category"}
+        </Text>
 
         <Image
           source={{
@@ -84,37 +71,40 @@ export default function CategoryPage() {
           style={styles.searchBar}
           placeholder="Search in category.."
           placeholderTextColor="gray"
+          value={search}
+          onChangeText={handleSearch}
         />
         <Ionicons name="mic" size={20} color="gray" />
       </View>
 
-      {/* 3. Sort & Filter */}
-      <View style={styles.featuredRow}>
-        <Text style={styles.featuredText}>{products.length} Items</Text>
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.btn}>
-            <Text>
-              Sort <Ionicons name="swap-vertical" />
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.btn}>
-            <Text>
-              Filter <Ionicons name="filter" />
-            </Text>
-          </TouchableOpacity>
+      {/* 3. Item Count (Only shows during search) */}
+      {search.length > 0 && (
+        <View style={styles.featuredRow}>
+          <Text style={styles.featuredText}>
+            {filteredProducts.length} Items Found
+          </Text>
         </View>
-      </View>
+      )}
 
       {/* 4. Product List */}
-      <FlatList
-        key={2}
-        data={products}
-        renderItem={({ item }) => <ProductCard product={item} />}
-        numColumns={2}
-        ListEmptyComponent={
-          <Text style={styles.noMatch}>No products found.</Text>
-        }
-      />
+      {loading ? (
+        <ActivityIndicator size="large" style={{ marginTop: 50 }} />
+      ) : (
+        <FlatList
+          data={filteredProducts}
+          keyExtractor={(item) => item._id || item.name}
+          renderItem={({ item }) => (
+            <View style={styles.cardWrapper}>
+              <ProductCard product={item} />
+            </View>
+          )}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          ListEmptyComponent={
+            <Text style={styles.noMatch}>Matches not found!</Text>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -127,7 +117,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 20,
   },
-  brandLogo: { width: 140, height: 35 }, // Adjusted size to fit
+  categoryTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    textTransform: "capitalize",
+    color: "#F83758",
+  },
   profile: { width: 45, height: 45, borderRadius: 25 },
   searchContainer: {
     flexDirection: "row",
@@ -138,23 +133,28 @@ const styles = StyleSheet.create({
     height: 44,
     marginBottom: 15,
     elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   searchBar: { flex: 1, paddingHorizontal: 10 },
   featuredRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     marginBottom: 15,
   },
   featuredText: { fontSize: 16, fontWeight: "bold" },
-  actionButtons: { flexDirection: "row", gap: 10 },
-  btn: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    padding: 8,
-    borderRadius: 5,
-    backgroundColor: "#fff",
+  row: {
+    justifyContent: "space-between",
+    paddingHorizontal: 5, // Small padding on the sides of the row
   },
-  noMatch: { textAlign: "center", marginTop: 50, color: "gray" },
+  cardWrapper: {
+    width: "47%", // Slightly less than 50% to leave a tiny gap
+    marginBottom: 15,
+  },
+  noMatch: {
+    textAlign: "center",
+    marginTop: 50,
+    color: "#F83758",
+    fontSize: 16,
+  },
 });

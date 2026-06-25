@@ -147,7 +147,7 @@ async function onSubmit(data) {
           onPress={() => router.push("/get-started")}
         >
           <Text style={styles.buttonText}>Login</Text>
-        </Pressable>
+        </Pressable> 
 
         <Text style={styles.orText}>- OR Continue with -</Text>
         <View style={styles.socialContainer}>

@@ -7,8 +7,8 @@ const HomePageSection = require('../models/HomePageSection');
 
 router.post('/add-product', async (req, res) => {
     try {
-        const { name, price, category, imageUrl, isFeatured } = req.body;
-        const newProduct = new Product({ name, price, category, imageUrl, isFeatured });
+        const { name, price, category, imageUrl, isFeatured, description } = req.body;
+        const newProduct = new Product({ name, price, category, imageUrl, isFeatured, description });
         await newProduct.save();
         res.status(201).json({ message: "Product Added!" });
     } catch (err) {
