@@ -8,6 +8,8 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  RefreshControl,
+  StatusBar,
 } from "react-native";
 import ProductCard from "../components/productCard";
 import { useEffect, useState } from "react";
@@ -24,17 +26,26 @@ export default function CategoryPage() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    setLoading(true);
-    api
+  const fetchProducts = () => {
+    return api
       .get(`/products?category=${id}`)
       .then((res) => {
         setProducts(res.data);
         setFilteredProducts(res.data);
-      })
-      .finally(() => setLoading(false));
+      });
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetchProducts().finally(() => setLoading(false));
   }, [id]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProducts().finally(() => setRefreshing(false));
+  };
 
   const handleSearch = (text) => {
     setSearch(text);
@@ -47,6 +58,7 @@ export default function CategoryPage() {
   return (
     <LinearGradient colors={["#FFD9E3", "#FFF1F4", "#FDFBF9"]} style={styles.gradient}>
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       {/* 1. Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
@@ -101,8 +113,11 @@ export default function CategoryPage() {
           )}
           numColumns={2}
           columnWrapperStyle={styles.row}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
           ListEmptyComponent={
-            <Text style={styles.noMatch}>Matches not found!</Text>
+            <Text style={styles.noMatch}>No matches found</Text>
           }
         />
       )}

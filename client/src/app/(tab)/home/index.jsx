@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  StatusBar,
 } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import ProductCard from "../../components/productCard";
@@ -200,8 +201,11 @@ const handleSearch = (text) => {
     );
   };
 
+  const isSearching = search.trim().length > 0;
+
   return (
     <SafeAreaView style={styles.safeContainer}>
+      <StatusBar barStyle="dark-content" />
       <View style={styles.staticHeaderContainer}>
         <View style={styles.header}>
           <Ionicons name="menu" size={28} color="#F9F9F9" />
@@ -272,10 +276,12 @@ const handleSearch = (text) => {
 
       {/* --- PRODUCTS SECTION WITH UPDATED SPACING --- */}
       <FlatList
+        style={styles.productList}
         data={filteredProducts}
         keyExtractor={(item) => item._id}
         numColumns={2}
         ListHeaderComponent={
+          isSearching ? null : (
             <View style={{ marginBottom: 10 }}>
               {/* 1. Clickable Banner Image */}
               <TouchableOpacity
@@ -300,9 +306,11 @@ const handleSearch = (text) => {
                 products={allProducts.slice(0, 5)}
               />
             </View>
+          )
         }
 
         ListFooterComponent={() =>
+          isSearching ? null : (
             <View style={{ marginBottom: 50 }}>
               <TouchableOpacity>
                 <SpecialOffers />
@@ -390,6 +398,7 @@ const handleSearch = (text) => {
                 </TouchableOpacity>
               </View>
             </View>
+          )
         }
         columnWrapperStyle={styles.row}
         contentContainerStyle={{ paddingHorizontal: 10, paddingTop: 10 }}
@@ -397,7 +406,7 @@ const handleSearch = (text) => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <Text style={styles.noMatch}>Matches not found!</Text>
+          <Text style={styles.noMatch}>No matches found</Text>
         }
       />
     </SafeAreaView>
@@ -407,6 +416,7 @@ const handleSearch = (text) => {
 const styles = StyleSheet.create({
   safeContainer: { flex: 1, backgroundColor: "#F9F9F9" },
   staticHeaderContainer: { paddingHorizontal: 10 },
+  productList: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",

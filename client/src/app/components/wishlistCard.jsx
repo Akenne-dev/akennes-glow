@@ -3,6 +3,13 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
 export default function WishlistCard({ product, onRemove, onShop }) {
+  const rating = product.rating || 0;
+  const discountAmount = product.discountAmount || 0;
+  const discountedPrice =
+    discountAmount > 0 ? Math.max(product.price - discountAmount, 0) : null;
+  const discountPercent =
+    discountAmount > 0 ? Math.round((discountAmount / product.price) * 100) : 0;
+
   return (
     <View style={styles.card}>
       <Image source={{ uri: product.imageUrl }} style={styles.image} />
@@ -14,7 +21,31 @@ export default function WishlistCard({ product, onRemove, onShop }) {
         <Text style={styles.description} numberOfLines={2}>
           {product.description}
         </Text>
-        <Text style={styles.price}>₦{product.price}</Text>
+
+        <View style={styles.ratingRow}>
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Ionicons
+              key={star}
+              name={star <= rating ? "star" : "star-outline"}
+              size={12}
+              color="#F5A623"
+            />
+          ))}
+        </View>
+
+        <View style={styles.priceRow}>
+          {discountedPrice !== null ? (
+            <>
+              <Text style={styles.price}>₦{discountedPrice}</Text>
+              <Text style={styles.originalPrice}>₦{product.price}</Text>
+              <View style={styles.discountBadge}>
+                <Text style={styles.discountBadgeText}>-{discountPercent}%</Text>
+              </View>
+            </>
+          ) : (
+            <Text style={styles.price}>₦{product.price}</Text>
+          )}
+        </View>
 
         <TouchableOpacity style={styles.shopButton} onPress={onShop}>
           <Ionicons name="cart" size={16} color="#fff" />
@@ -65,11 +96,37 @@ const styles = StyleSheet.create({
     marginTop: 2,
     lineHeight: 16,
   },
+  ratingRow: {
+    flexDirection: "row",
+    gap: 2,
+    marginTop: 6,
+  },
+  priceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 6,
+  },
+  originalPrice: {
+    fontSize: 13,
+    color: "#999",
+    textDecorationLine: "line-through",
+  },
   price: {
     fontSize: 19,
     fontWeight: "700",
     color: "#222",
-    marginTop: 6,
+  },
+  discountBadge: {
+    backgroundColor: "#F83758",
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  discountBadgeText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
   },
   shopButton: {
     flexDirection: "row",
