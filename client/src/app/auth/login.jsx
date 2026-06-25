@@ -16,7 +16,7 @@ import {
 import { Link, useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
-import { api } from "../../lib/api";
+import { api, setAuthToken } from "../../lib/api";
 
 export default function Login() {
   const router = useRouter();
@@ -34,7 +34,8 @@ export default function Login() {
 async function onSubmit(data) {
   setLoading(true); // Disable button immediately
   try {
-    await api.post("/auth/login", data);
+    const response = await api.post("/auth/login", data);
+    await setAuthToken(response.data.token);
     router.push("/home");
   } catch (error) {
     Alert.alert(
@@ -129,7 +130,7 @@ async function onSubmit(data) {
         </TouchableOpacity>
 
         {/* this is the real clickable button do not delete it, it is the one that triggers the registration process */}
-        {/* <Pressable
+        <Pressable
           style={[styles.button, loading && { opacity: 0.6 }]}
           onPress={handleSubmit(onSubmit)}
           disabled={loading} // Prevents extra clicks
@@ -139,15 +140,15 @@ async function onSubmit(data) {
           ) : (
             <Text style={styles.buttonText}>Login</Text>
           )}
-        </Pressable> */}
+        </Pressable>
 
-        <Pressable
+        {/* <Pressable
           style={[styles.button]}
           // Wrap it in an arrow function so it only runs on press
           onPress={() => router.push("/get-started")}
         >
           <Text style={styles.buttonText}>Login</Text>
-        </Pressable> 
+        </Pressable>  */}
 
         <Text style={styles.orText}>- OR Continue with -</Text>
         <View style={styles.socialContainer}>

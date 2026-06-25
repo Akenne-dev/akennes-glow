@@ -446,7 +446,7 @@ import {
 import { Link, useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { Ionicons } from "@expo/vector-icons";
-import { api } from "../../lib/api";
+import { api, setAuthToken } from "../../lib/api";
 
 export default function Register() {
   const router = useRouter();
@@ -488,7 +488,8 @@ export default function Register() {
   async function onSubmit(data) {
     setLoading(true);
     try {
-      await api.post("/auth/register", data);
+      const response = await api.post("/auth/register", data);
+      await setAuthToken(response.data.token);
 
       setShowModal(true);
       setTimeout(() => {
@@ -727,7 +728,7 @@ export default function Register() {
           </Text>
 
           {/* this is the real clickable button do not delete it, it is the one that triggers the registration process */}
-          {/* <Pressable
+          <Pressable
           style={[styles.button, loading && { opacity: 0.6 }]}
           onPress={handleSubmit(onSubmit)}
           disabled={loading}
@@ -737,15 +738,15 @@ export default function Register() {
           ) : (
             <Text style={styles.buttonText}>Create Account</Text>
           )}
-        </Pressable> */}
+        </Pressable>
 
-          <Pressable
+          {/* <Pressable
             style={[styles.button]}
             // Wrap it in an arrow function so it only runs on press
             onPress={() => router.push("/auth/login")}
           >
             <Text style={styles.buttonText}>Create Account</Text>
-          </Pressable>
+          </Pressable> */}
 
           <Text style={styles.orText}>- OR Continue with -</Text>
 
